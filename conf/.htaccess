@@ -1,0 +1,15 @@
+# Disable directory browsing
+Options All -Indexes
+
+# Denegar acceso a todos .htaccess files
+<files ~ "^.*\.([Hh][Tt][Aa])">
+order allow,deny
+deny from all
+satisfy all
+</files>
+
+# Denegar acceso a config.php file
+<files config.php>
+order allow,deny
+deny from all
+</files>
