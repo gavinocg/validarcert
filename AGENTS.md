@@ -19,6 +19,7 @@ public_html/
 ├── index.php              # Formulario de búsqueda (página principal)
 ├── consultar.php          # Proxy AJAX -> API interna
 ├── mostrar.php            # Visor de PDF con marca de agua rasterizada
+├── seleccionar.php        # Selector de archivos físicos (múltiples versiones)
 ├── error.php              # Página de error
 ├── api/
 │   └── wscons.php         # API REST interna (consulta Oracle)

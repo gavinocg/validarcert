@@ -128,7 +128,46 @@ function buscarArchivoRecursivo($path, $no_tramite){
     }  
 }
 
-// Convierte una página de PDF a PNG usando Ghostscript
+// Busca archivos en el repositorio fisico por numero de tramite
+function BuscarArchivosFisico($path, $no_tramite)
+{
+    $resultados = array();
+    if (!is_dir($path)) {
+        return $resultados;
+    }
+    $dir = opendir($path);
+    if (!$dir) {
+        return $resultados;
+    }
+    while ($current = readdir($dir)) {
+        if ($current == "." || $current == "..") continue;
+        if (is_dir($path . $current)) continue;
+        $parte_num = explode('-', $current, 2);
+        $nombre_sin_ext = pathinfo($current, PATHINFO_FILENAME);
+        $base = rtrim($nombre_sin_ext, 'cC');
+        if ($base === $no_tramite) {
+            $ruta = $path . $current;
+            $fecha = date('Y-m-d H:i:s', filemtime($ruta));
+            $prioridad = strlen($nombre_sin_ext) - strlen($base);
+            $resultados[] = array(
+                'nombre' => $current,
+                'fecha' => $fecha,
+                'ruta' => $ruta,
+                'prioridad' => $prioridad
+            );
+        }
+    }
+    closedir($dir);
+    usort($resultados, function($a, $b) {
+        if ($a['prioridad'] != $b['prioridad']) {
+            return $b['prioridad'] - $a['prioridad'];
+        }
+        return strcmp($a['fecha'], $b['fecha']);
+    });
+    return $resultados;
+}
+
+// Convierte una pagina de PDF a PNG usando Ghostscript
 function PaginaAPng($pdf_path, $page_num, $output_dir, $dpi = 150)
 {
     $output_path = $output_dir . '/page_' . $page_num . '.png';

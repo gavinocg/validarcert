@@ -28,13 +28,26 @@
     $respuesta = "";
     // Se obtiene las variables de GET / POST
     if (isset ($_POST['no_tramite'])) {
-        //Obtenemos las variables POST
         $no_tramite = $_POST['no_tramite'];
     } else if (isset ($_GET['no_tramite'])) {
-        //Obtenemos las variables GET
         $no_tramite = $_GET['no_tramite'];
     } else {
         $respuesta .= "<li>No se ha recibido número de trámite para la búsqueda.</li>";
+    }
+
+    // Detectar si viene del repositorio fisico
+    $repo_fisico = isset($_GET['repo']) && $_GET['repo'] === 'fisico';
+    $archivo_nombre = isset($_GET['archivo']) ? $_GET['archivo'] : '';
+
+    if ($repo_fisico && !empty($archivo_nombre)) {
+        $repo_path = REPO_FISICO_PATH . $periodo_actual . "/";
+        $ruta_archivo = $repo_path . $archivo_nombre;
+        if (!file_exists($ruta_archivo)) {
+            $respuesta .= "<li>El archivo solicitado no existe en el repositorio físico.</li>";
+        }
+    } elseif ($repo_fisico && empty($archivo_nombre)) {
+        header('Location: seleccionar.php?no_tramite=' . urlencode($no_tramite));
+        exit;
     }
 
     if (substr($no_tramite, -2) != substr($periodo_actual, -2)) {
@@ -46,10 +59,23 @@
         throw new ErrorException($err_msg, 0, $err_severity, $err_file, $err_line);
     }, E_WARNING);
     try {
-        $archivo = BuscarArchivo($repo_path, $no_tramite);
+        if ($repo_fisico && !empty($archivo_nombre)) {
+            $archivo = $ruta_archivo;
+        } else {
+            $archivo = BuscarArchivo($repo_path, $no_tramite);
+        }
         MostrarPdfMarcaAgua($archivo);
     } catch (Exception $e) {
-        $respuesta .= "<li>Confirme que el número de trámite y número de Certificado corresponde a un documento emitido de manera digital (no físico).</li>"
+        // Si no se encuentra en el repo digital, buscar en el fisico
+        if (!$repo_fisico) {
+            $fisico_path = REPO_FISICO_PATH . $periodo_actual . "/";
+            $fisicos = BuscarArchivosFisico($fisico_path, $no_tramite);
+            if (count($fisicos) > 0) {
+                header('Location: seleccionar.php?no_tramite=' . urlencode($no_tramite));
+                exit;
+            }
+        }
+        $respuesta .= "<li>Confirme que el número de trámite corresponde a un documento emitido.</li>"
             ?>
         <form action="index.php" method="post">
             <div class="container">
