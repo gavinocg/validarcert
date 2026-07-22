@@ -147,34 +147,17 @@ function PaginaAPng($pdf_path, $page_num, $output_dir, $dpi = 150)
     return $output_path;
 }
 
-// Elimina la firma electronica (anotaciones) del PDF usando Ghostscript
-function RemoverFirmaElectronica($pdf_path, $output_path)
-{
-    $cmd = sprintf(
-        'gs -dNOPAUSE -dBATCH -dQUIET -dSAFER -sDEVICE=pdfwrite -dPreserveAnnots=false -dPreserveFormFields=false -sOutputFile=%s "%s" 2>&1',
-        $output_path,
-        $pdf_path
-    );
-    exec($cmd, $output, $return_code);
-    if ($return_code !== 0 || !file_exists($output_path)) {
-        throw new Exception('Error al remover firma electrónica: ' . implode("\n", $output));
-    }
-    return $output_path;
-}
-
 // Extrae las coordenadas de los rectangulos de firma electronica por cada pagina
 function ExtraerRectsFirma($pdf_path)
 {
     $content = file_get_contents($pdf_path);
 
-    // Extraer todos los objetos del PDF: "N 0 obj ... endobj"
     $objects = [];
     preg_match_all('/(\d+)\s+\d+\s+obj(.*?)endobj/s', $content, $matches, PREG_SET_ORDER);
     foreach ($matches as $m) {
         $objects[(int)$m[1]] = $m[2];
     }
 
-    // Identificar anotaciones con /FT/Sig y su Rect
     $sig_rects_by_obj = [];
     foreach ($objects as $obj_num => $body) {
         if (preg_match('/\/FT\s*\/Sig/i', $body) && preg_match('/\/Rect\s*\[(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\]/i', $body, $r)) {
@@ -186,7 +169,6 @@ function ExtraerRectsFirma($pdf_path)
         return [];
     }
 
-    // Identificar paginas con /Type/Page y sus /Annots, mapear rects a cada pagina
     $page_rects = [];
     foreach ($objects as $obj_num => $body) {
         if (preg_match('/\/Type\s*\/Page/i', $body) && preg_match('/\/Annots\s*\[(.*?)\]/i', $body, $a)) {
@@ -219,10 +201,10 @@ function AplicarMarcaAguaImagen($img_path, $output_path, $qr_rects = null)
         $factor = 150 / 72;
         $black = imagecolorallocate($img, 0, 0, 0);
         foreach ($qr_rects as $qr_rect) {
-            $x1 = round($qr_rect[0] * $factor) - 15;
-            $y1 = $height - round($qr_rect[3] * $factor) - 15;
-            $x2 = round($qr_rect[2] * $factor) + 15;
-            $y2 = $height - round($qr_rect[1] * $factor) + 15;
+            $x1 = round($qr_rect[0] * $factor) - 30;
+            $y1 = $height - round($qr_rect[3] * $factor) - 30;
+            $x2 = round($qr_rect[2] * $factor) + 30;
+            $y2 = $height - round($qr_rect[1] * $factor) + 30;
             imagefilledrectangle($img, $x1, $y1, $x2, $y2, $black);
         }
     }
@@ -259,18 +241,15 @@ function MostrarPdfMarcaAgua($ruta_pdf)
     try {
         $page_rects = ExtraerRectsFirma($ruta_pdf);
 
-        $clean_pdf = $tmp_dir . '/clean.pdf';
-        RemoverFirmaElectronica($ruta_pdf, $clean_pdf);
-
         $pdf_info = new \setasign\Fpdi\Fpdi();
-        $pages_count = $pdf_info->setSourceFile($clean_pdf);
+        $pages_count = $pdf_info->setSourceFile($ruta_pdf);
         unset($pdf_info);
 
         $new_pdf = new FPDF('P', 'mm', 'A4');
         $new_pdf->SetAutoPageBreak(false);
 
         for ($i = 1; $i <= $pages_count; $i++) {
-            $png_path = PaginaAPng($clean_pdf, $i, $tmp_dir);
+            $png_path = PaginaAPng($ruta_pdf, $i, $tmp_dir);
             $wm_path = $tmp_dir . '/wm_' . $i . '.png';
             $current_rects = isset($page_rects[$i]) ? $page_rects[$i] : null;
             AplicarMarcaAguaImagen($png_path, $wm_path, $current_rects);
