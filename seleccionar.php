@@ -54,7 +54,7 @@
                                 $base = rtrim($nombre_sin_ext, 'cC');
                                 $link = 'mostrar.php?no_tramite=' . urlencode($no_tramite) . '&repo=fisico&archivo=' . urlencode($archivo['nombre']);
                             ?>
-                            <a href="<?php echo $link; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <?php echo $es_mejor ? 'active' : ''; ?>">
+                            <a href="<?php echo $link; ?>" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <?php echo $es_mejor ? 'active' : ''; ?>">
                                 <span>
                                     <span class="ion-md-document"></span>
                                     Certificado <?php echo htmlspecialchars($base); ?>
