@@ -122,16 +122,16 @@
                             <li>Tome en cuenta las siguientes consideraciones:
                                 <ul style="text-align: justify; list-inline-padding:3rem;">
                                     <li>La información que se muestra en ésta herramienta es la conferida por
-                                        el Registro de la Propiedad y Mercantil del Cantón Cayambe en el Certificado
-                                        digital, la misma que reposa en las bases de datos del sistema informático de la
+                                        el Registro de la Propiedad y Mercantil del Cantón Cayambe en el Certificado,
+                                        la misma que reposa en las bases de datos del sistema informático de la
                                         Institución.</li>
-                                    <li>Por seguridad se mostrará el documento sin la firma electrónica de la Máxima
-                                        autoridad y con marca de agua.</li>
+                                    <li>En los certificados digitales, por seguridad se mostrará el documento sin la firma
+                                        electrónica de la Máxima autoridad y con marca de agua.</li>
                                     <li>Se sugiere utilizar la herramienta FirmaEc para verificar la validez de la firma
                                         electrónica del Certificado digital que tiene en su poder.</li>
                                     <li>Usted es el responsable de comparar y verificar que la información
                                         proporcionada en ésta herramienta sea exacta a la contenida en el Certificado
-                                        digital que tiene en su poder, de existir inconsistencias o alteraciones deberá
+                                        que tiene en su poder, de existir inconsistencias o alteraciones es su deber
                                         reportarlas inmediatamente al RPMC a través de los contactos (02) 236-0299 o
                                         (02) 211-1065.
                                     </li>
