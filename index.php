@@ -123,7 +123,7 @@
                     <ol class="list-group list-group-numbered">
                         <li class="list-group-item border-0 ps-0" style="text-align: justify;">
                             La información que se muestra en ésta herramienta es la conferida por
-                            el Registro de la Propiedad y Mercantil del Cantón Cayambe en el Certificado,
+                            el Registro de la Propiedad y Mercantil del Cantón Cayambe,
                             la misma que reposa en las bases de datos del sistema informático de la
                             Institución.
                         </li>
@@ -144,9 +144,9 @@
                             <a href="tel:+59322111065" class="text-decoration-none">(02) 211-1065</a>.
                         </li>
                     </ol>
-                    <div class="form-check mt-4 p-3 bg-light rounded border">
-                        <input class="form-check-input" type="checkbox" value="" id="chkConsideraciones" autofocus>
-                        <label class="form-check-label fw-semibold" for="chkConsideraciones">
+                    <div class="mt-4 p-3 bg-light rounded border d-flex align-items-center gap-3">
+                        <input class="form-check-input m-0" type="checkbox" value="" id="chkConsideraciones" autofocus style="width:1.2em;height:1.2em;flex-shrink:0">
+                        <label class="fw-semibold mb-0" for="chkConsideraciones" style="cursor:pointer;">
                             He leído y entendido las consideraciones indicadas anteriormente.
                         </label>
                     </div>
