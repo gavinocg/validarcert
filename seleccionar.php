@@ -44,18 +44,20 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <p>Se encontraron múltiples versiones del archivo. Seleccione la que desea visualizar:</p>
+                        <p>Se encontraron múltiples versiones del certificado. Seleccione la que desea visualizar:</p>
                         <div class="list-group">
                             <?php
                             $mejor = $archivos[0];
                             foreach ($archivos as $archivo):
                                 $es_mejor = ($archivo['nombre'] === $mejor['nombre']);
+                                $nombre_sin_ext = pathinfo($archivo['nombre'], PATHINFO_FILENAME);
+                                $base = rtrim($nombre_sin_ext, 'cC');
                                 $link = 'mostrar.php?no_tramite=' . urlencode($no_tramite) . '&repo=fisico&archivo=' . urlencode($archivo['nombre']);
                             ?>
                             <a href="<?php echo $link; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <?php echo $es_mejor ? 'active' : ''; ?>">
                                 <span>
-                                    <span class="ion-md-attach"></span>
-                                    <?php echo htmlspecialchars($archivo['nombre']); ?>
+                                    <span class="ion-md-document"></span>
+                                    Certificado <?php echo htmlspecialchars($base); ?>
                                     <?php if ($es_mejor): ?>
                                     <span class="badge bg-light text-dark ms-2">Recomendado</span>
                                     <?php endif; ?>
