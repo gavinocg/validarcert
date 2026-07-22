@@ -18,7 +18,7 @@
                 <div class="col-auto bg-light p-5 ">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="ion-md-finger-print card-title"> Validar Certificado digital</h4>
+                            <h4 class="ion-md-finger-print card-title"> Validar Certificados emitidos por el RPMC</h4>
                             <h4></h4>
                         </div>
                         <div class="card-body">
@@ -41,8 +41,8 @@
                             </div>
                         </div>
                         <div class="card-footer">
-                            <span style="font-size:12px"><b>Desripción:</b> Permite verificar y validar los datos de
-                                Certificados emitidos de forma digital (versión Beta).</span>
+                            <span style="font-size:12px"><b>Desripción:</b> Permite verificar y validar la información contenida en los
+                                Certificados emitidos por el RPMC (versión Beta).</span>
                         </div>
                     </div>
                     <div class="col-auto bg-light">
@@ -109,47 +109,55 @@
 
     <!-- Modal Ventana -->
     <div class="modal fade" id="modalVentana" tabindex="-1" aria-labelledby="modalVentanaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="modalVentanaLabel">Muy importante</h3>
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary" id="modalVentanaLabel">
+                        <span class="ion-md-information-circle"></span> Muy importante
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     <input type="hidden" id="txtNoTramite">
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <ul class="list-unstyled">
-                            <li>Tome en cuenta las siguientes consideraciones:
-                                <ul style="text-align: justify; list-inline-padding:3rem;">
-                                    <li>La información que se muestra en ésta herramienta es la conferida por
-                                        el Registro de la Propiedad y Mercantil del Cantón Cayambe en el Certificado,
-                                        la misma que reposa en las bases de datos del sistema informático de la
-                                        Institución.</li>
-                                    <li>En los certificados digitales, por seguridad se mostrará el documento sin la firma
-                                        electrónica de la Máxima autoridad y con marca de agua.</li>
-                                    <li>Se sugiere utilizar la herramienta FirmaEc para verificar la validez de la firma
-                                        electrónica del Certificado digital que tiene en su poder.</li>
-                                    <li>Usted es el responsable de comparar y verificar que la información
-                                        proporcionada en ésta herramienta sea exacta a la contenida en el Certificado
-                                        que tiene en su poder, de existir inconsistencias o alteraciones es su deber
-                                        reportarlas inmediatamente al RPMC a través de los contactos (02) 236-0299 o
-                                        (02) 211-1065.
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="form-check">
+                <div class="modal-body pt-3">
+                    <p class="fw-semibold mb-3">Tome en cuenta las siguientes consideraciones:</p>
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item border-0 ps-0" style="text-align: justify;">
+                            La información que se muestra en ésta herramienta es la conferida por
+                            el Registro de la Propiedad y Mercantil del Cantón Cayambe en el Certificado,
+                            la misma que reposa en las bases de datos del sistema informático de la
+                            Institución.
+                        </li>
+                        <li class="list-group-item border-0 ps-0" style="text-align: justify;">
+                            En los certificados digitales, por seguridad se mostrará el documento sin la firma
+                            electrónica de la Máxima autoridad y con marca de agua.
+                        </li>
+                        <li class="list-group-item border-0 ps-0" style="text-align: justify;">
+                            Se sugiere utilizar la herramienta <strong>FirmaEc</strong> para verificar la validez de la firma
+                            electrónica del Certificado digital que tiene en su poder.
+                        </li>
+                        <li class="list-group-item border-0 ps-0" style="text-align: justify;">
+                            Usted es el responsable de comparar y verificar que la información
+                            proporcionada en ésta herramienta sea exacta a la contenida en el Certificado
+                            que tiene en su poder, de existir inconsistencias o alteraciones es su deber
+                            reportarlas inmediatamente al RPMC a través de los contactos
+                            <a href="tel:+59322360299" class="text-decoration-none">(02) 236-0299</a> o
+                            <a href="tel:+59322111065" class="text-decoration-none">(02) 211-1065</a>.
+                        </li>
+                    </ol>
+                    <div class="form-check mt-4 p-3 bg-light rounded border">
                         <input class="form-check-input" type="checkbox" value="" id="chkConsideraciones" autofocus>
-                        <label class="form-check-label" for="chkConsideraciones">
-                            <b>He leído y entendido las consideraciones indicadas anteriormente.</b>
+                        <label class="form-check-label fw-semibold" for="chkConsideraciones">
+                            He leído y entendido las consideraciones indicadas anteriormente.
                         </label>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-success icon ion-md-eye" id="btnVerCertificado" disabled> Ver
-                        Certificado</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <span class="ion-md-close"></span> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnVerCertificado" disabled>
+                        <span class="ion-md-eye"></span> Ver Certificado
+                    </button>
                 </div>
             </div>
         </div>
