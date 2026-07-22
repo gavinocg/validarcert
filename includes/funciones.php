@@ -170,14 +170,17 @@ function ExtraerRectsFirma($pdf_path)
     }
 
     $page_rects = [];
+    $page_idx = 0;
     foreach ($objects as $obj_num => $body) {
-        if (preg_match('/\/Type\s*\/Page/i', $body) && preg_match('/\/Annots\s*\[(.*?)\]/i', $body, $a)) {
-            $page_idx = count($page_rects) + 1;
-            preg_match_all('/(\d+)\s+\d+\s+R/i', $a[1], $refs);
-            foreach ($refs[1] as $ref) {
-                $ref_int = (int)$ref;
-                if (isset($sig_rects_by_obj[$ref_int])) {
-                    $page_rects[$page_idx][] = $sig_rects_by_obj[$ref_int];
+        if (preg_match('/\/Type\s*\/Page/i', $body)) {
+            $page_idx++;
+            if (preg_match('/\/Annots\s*\[(.*?)\]/i', $body, $a)) {
+                preg_match_all('/(\d+)\s+\d+\s+R/i', $a[1], $refs);
+                foreach ($refs[1] as $ref) {
+                    $ref_int = (int)$ref;
+                    if (isset($sig_rects_by_obj[$ref_int])) {
+                        $page_rects[$page_idx][] = $sig_rects_by_obj[$ref_int];
+                    }
                 }
             }
         }
