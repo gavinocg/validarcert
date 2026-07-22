@@ -218,7 +218,7 @@
             // Obtengo numero de tramite
             var num_tram = document.getElementById("txtNoTramite").value;
             // Muestra certificado en ventana en blanco
-            window.open('mostrar.php?no_tramite=' + num_tram, "_blank");
+            window.location.href = 'mostrar.php?no_tramite=' + num_tram;
         });
 
         $('#modalVentana').on('shown.bs.modal', function () {
