@@ -162,19 +162,50 @@ function RemoverFirmaElectronica($pdf_path, $output_path)
     return $output_path;
 }
 
-// Extrae las coordenadas del rectangulo de la firma electronica del PDF
-function ExtraerRectFirma($pdf_path)
+// Extrae las coordenadas de los rectangulos de firma electronica por cada pagina
+function ExtraerRectsFirma($pdf_path)
 {
     $content = file_get_contents($pdf_path);
-    if (preg_match('/\/FT\s*\/Sig.*?Rect\[(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\]/is', $content, $m) ||
-        preg_match('/Rect\[(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\].*?\/FT\s*\/Sig/is', $content, $m)) {
-        return [(int)$m[1], (int)$m[2], (int)$m[3], (int)$m[4]];
+
+    // Extraer todos los objetos del PDF: "N 0 obj ... endobj"
+    $objects = [];
+    preg_match_all('/(\d+)\s+\d+\s+obj(.*?)endobj/s', $content, $matches, PREG_SET_ORDER);
+    foreach ($matches as $m) {
+        $objects[(int)$m[1]] = $m[2];
     }
-    return null;
+
+    // Identificar anotaciones con /FT/Sig y su Rect
+    $sig_rects_by_obj = [];
+    foreach ($objects as $obj_num => $body) {
+        if (preg_match('/\/FT\s*\/Sig/i', $body) && preg_match('/\/Rect\s*\[(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\]/i', $body, $r)) {
+            $sig_rects_by_obj[$obj_num] = [(int)$r[1], (int)$r[2], (int)$r[3], (int)$r[4]];
+        }
+    }
+
+    if (empty($sig_rects_by_obj)) {
+        return [];
+    }
+
+    // Identificar paginas con /Type/Page y sus /Annots, mapear rects a cada pagina
+    $page_rects = [];
+    foreach ($objects as $obj_num => $body) {
+        if (preg_match('/\/Type\s*\/Page/i', $body) && preg_match('/\/Annots\s*\[(.*?)\]/i', $body, $a)) {
+            $page_idx = count($page_rects) + 1;
+            preg_match_all('/(\d+)\s+\d+\s+R/i', $a[1], $refs);
+            foreach ($refs[1] as $ref) {
+                $ref_int = (int)$ref;
+                if (isset($sig_rects_by_obj[$ref_int])) {
+                    $page_rects[$page_idx][] = $sig_rects_by_obj[$ref_int];
+                }
+            }
+        }
+    }
+
+    return $page_rects;
 }
 
 // Aplica marca de agua sobre una imagen PNG usando GD
-function AplicarMarcaAguaImagen($img_path, $output_path, $qr_rect = null)
+function AplicarMarcaAguaImagen($img_path, $output_path, $qr_rects = null)
 {
     $img = imagecreatefrompng($img_path);
     if (!$img) {
@@ -183,15 +214,17 @@ function AplicarMarcaAguaImagen($img_path, $output_path, $qr_rect = null)
 
     $height = imagesy($img);
 
-    // Cubrir QR con rectangulo negro si se proporcionaron coordenadas
-    if ($qr_rect) {
+    // Cubrir QR(s) con rectangulo negro si se proporcionaron coordenadas
+    if ($qr_rects) {
         $factor = 150 / 72;
-        $x1 = round($qr_rect[0] * $factor) - 15;
-        $y1 = $height - round($qr_rect[3] * $factor) - 15;
-        $x2 = round($qr_rect[2] * $factor) + 15;
-        $y2 = $height - round($qr_rect[1] * $factor) + 15;
         $black = imagecolorallocate($img, 0, 0, 0);
-        imagefilledrectangle($img, $x1, $y1, $x2, $y2, $black);
+        foreach ($qr_rects as $qr_rect) {
+            $x1 = round($qr_rect[0] * $factor) - 15;
+            $y1 = $height - round($qr_rect[3] * $factor) - 15;
+            $x2 = round($qr_rect[2] * $factor) + 15;
+            $y2 = $height - round($qr_rect[1] * $factor) + 15;
+            imagefilledrectangle($img, $x1, $y1, $x2, $y2, $black);
+        }
     }
 
     $font = '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Italic.otf';
@@ -224,7 +257,7 @@ function MostrarPdfMarcaAgua($ruta_pdf)
     }
 
     try {
-        $sig_rect = ExtraerRectFirma($ruta_pdf);
+        $page_rects = ExtraerRectsFirma($ruta_pdf);
 
         $clean_pdf = $tmp_dir . '/clean.pdf';
         RemoverFirmaElectronica($ruta_pdf, $clean_pdf);
@@ -239,8 +272,8 @@ function MostrarPdfMarcaAgua($ruta_pdf)
         for ($i = 1; $i <= $pages_count; $i++) {
             $png_path = PaginaAPng($clean_pdf, $i, $tmp_dir);
             $wm_path = $tmp_dir . '/wm_' . $i . '.png';
-            $qr_rect = ($i === $pages_count && $sig_rect) ? $sig_rect : null;
-            AplicarMarcaAguaImagen($png_path, $wm_path, $qr_rect);
+            $current_rects = isset($page_rects[$i]) ? $page_rects[$i] : null;
+            AplicarMarcaAguaImagen($png_path, $wm_path, $current_rects);
             $new_pdf->AddPage();
             $new_pdf->Image($wm_path, 0, 0, 210, 297);
         }
