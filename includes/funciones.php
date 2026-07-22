@@ -147,91 +147,6 @@ function PaginaAPng($pdf_path, $page_num, $output_dir, $dpi = 150)
     return $output_path;
 }
 
-// Extrae las coordenadas de los rectangulos de firma electronica por cada pagina
-function ExtraerRectsFirma($pdf_path)
-{
-    $content = file_get_contents($pdf_path);
-
-    $objects = [];
-    preg_match_all('/(\d+)\s+\d+\s+obj(.*?)endobj/s', $content, $matches, PREG_SET_ORDER);
-    foreach ($matches as $m) {
-        $objects[(int)$m[1]] = $m[2];
-    }
-
-    $sig_rects_by_obj = [];
-    foreach ($objects as $obj_num => $body) {
-        if (preg_match('/\/FT\s*\/Sig/i', $body) && preg_match('/\/Rect\s*\[(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\]/i', $body, $r)) {
-            $sig_rects_by_obj[$obj_num] = [(int)$r[1], (int)$r[2], (int)$r[3], (int)$r[4]];
-        }
-    }
-
-    if (empty($sig_rects_by_obj)) {
-        return [];
-    }
-
-    $page_rects = [];
-    $page_idx = 0;
-    foreach ($objects as $obj_num => $body) {
-        if (preg_match('/\/Type\s*\/Page/i', $body)) {
-            $page_idx++;
-            if (preg_match('/\/Annots\s*\[(.*?)\]/i', $body, $a)) {
-                preg_match_all('/(\d+)\s+\d+\s+R/i', $a[1], $refs);
-                foreach ($refs[1] as $ref) {
-                    $ref_int = (int)$ref;
-                    if (isset($sig_rects_by_obj[$ref_int])) {
-                        $page_rects[$page_idx][] = $sig_rects_by_obj[$ref_int];
-                    }
-                }
-            }
-        }
-    }
-
-    return $page_rects;
-}
-
-// Aplica marca de agua sobre una imagen PNG usando GD
-function AplicarMarcaAguaImagen($img_path, $output_path, $qr_rects = null)
-{
-    $img = imagecreatefrompng($img_path);
-    if (!$img) {
-        throw new Exception('No se pudo cargar la imagen: ' . $img_path);
-    }
-
-    $height = imagesy($img);
-
-    // Cubrir QR(s) con rectangulo negro si se proporcionaron coordenadas
-    if ($qr_rects) {
-        $factor = 150 / 72;
-        $black = imagecolorallocate($img, 0, 0, 0);
-        foreach ($qr_rects as $qr_rect) {
-            $x1 = round($qr_rect[0] * $factor) - 30;
-            $y1 = $height - round($qr_rect[3] * $factor) - 30;
-            $x2 = round($qr_rect[2] * $factor) + 30;
-            $y2 = $height - round($qr_rect[1] * $factor) + 30;
-            imagefilledrectangle($img, $x1, $y1, $x2, $y2, $black);
-        }
-    }
-
-    $font = '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Italic.otf';
-    if (!file_exists($font)) {
-        $font = '/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf';
-    }
-
-    $gray = imagecolorallocatealpha($img, 192, 192, 192, 60);
-    $font_size = 12;
-    $watermarkText = str_repeat('Sin validez legal - ', 15);
-
-    $text_w = imagesx($img);
-    $step_y = round(10 * 150 / 25.4);
-
-    for ($y = $step_y; $y < $height + $text_w; $y += $step_y) {
-        imagettftext($img, $font_size, 45, 0, $y, $gray, $font, $watermarkText);
-    }
-
-    imagepng($img, $output_path);
-    imagedestroy($img);
-}
-
 // Inserta marca de agua rasterizada en PDF y lo retorna
 function MostrarPdfMarcaAgua($ruta_pdf)
 {
@@ -242,22 +157,44 @@ function MostrarPdfMarcaAgua($ruta_pdf)
     }
 
     try {
-        $page_rects = ExtraerRectsFirma($ruta_pdf);
+        // 1. Crear PDF intermedio con FPDI (no importa firmas electronicas) + FPDF (watermark vectorial)
+        $tmp_pdf = $tmp_dir . '/wm.pdf';
+        $pdf = new \setasign\Fpdi\Fpdi();
+        $pages_count = $pdf->setSourceFile($ruta_pdf);
 
-        $pdf_info = new \setasign\Fpdi\Fpdi();
-        $pages_count = $pdf_info->setSourceFile($ruta_pdf);
-        unset($pdf_info);
+        $watermarkText = str_repeat('Sin validez legal - ', 15);
 
+        for ($i = 1; $i <= $pages_count; $i++) {
+            $tplIdx = $pdf->importPage($i);
+            $pdf->AddPage();
+            $pdf->useTemplate($tplIdx, 0, 0);
+
+            $pdf->SetFont('Times', 'I', 12);
+            $pdf->SetTextColor(192, 192, 192);
+
+            for ($y = 10; $y < 507; $y += 10) {
+                $angle = 45 * M_PI / 180;
+                $c = cos($angle);
+                $s = sin($angle);
+                $cx = 0;
+                $cy = 300 - $y;
+                $pdf->_out(sprintf('q %.5F %.5F %.5F %.5F %.2F %.2F cm 1 0 0 1 %.2F %.2F cm', $c, $s, -$s, $c, $cx, $cy, -$cx, -$cy));
+                $pdf->Text(0, $y, $watermarkText);
+                $pdf->_out('Q');
+            }
+        }
+
+        $pdf->Output('F', $tmp_pdf);
+        unset($pdf);
+
+        // 2. Rasterizar cada pagina del PDF intermedio a PNG y embeber en PDF final
         $new_pdf = new FPDF('P', 'mm', 'A4');
         $new_pdf->SetAutoPageBreak(false);
 
         for ($i = 1; $i <= $pages_count; $i++) {
-            $png_path = PaginaAPng($ruta_pdf, $i, $tmp_dir);
-            $wm_path = $tmp_dir . '/wm_' . $i . '.png';
-            $current_rects = isset($page_rects[$i]) ? $page_rects[$i] : null;
-            AplicarMarcaAguaImagen($png_path, $wm_path, $current_rects);
+            $png_path = PaginaAPng($tmp_pdf, $i, $tmp_dir);
             $new_pdf->AddPage();
-            $new_pdf->Image($wm_path, 0, 0, 210, 297);
+            $new_pdf->Image($png_path, 0, 0, 210, 297);
         }
 
         $new_pdf->Output();
