@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Validar certificado digital (Beta)</title>
+    <title>Validar Certificados</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <!-- Bootstrap CSS v5.3.0 min-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -18,7 +18,7 @@
                 <div class="col-auto bg-light p-5 ">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="ion-md-finger-print card-title"> Validar Certificados emitidos por el RPMC</h4>
+                            <h4 class="ion-md-finger-print card-title"> Validador de Certificados emitidos por el RPMC</h4>
                             <h4></h4>
                         </div>
                         <div class="card-body">
