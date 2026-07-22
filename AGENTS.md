@@ -50,17 +50,16 @@ No hay `composer.json` ni `package.json` a nivel raíz. Las librerías están ve
 
 ## Flujo de marca de agua (MostrarPdfMarcaAgua)
 
-1. **Ghostscript** elimina la firma electrónica (anotaciones `/FT/Sig`) del PDF original (`RemoverFirmaElectronica`)
-2. **Ghostscript** rasteriza cada página del PDF limpio a PNG a 150 DPI (`PaginaAPng`)
-3. **PHP GD** superpone "Sin validez legal" repetido en diagonal a 45° (18pt, 80% opaco, espaciado denso ~2.5mm) sobre la imagen PNG (`AplicarMarcaAguaImagen`)
-4. **FPDF** embebe las imágenes watermarked en un nuevo PDF
+1. **FPDI** importa cada página del PDF original (FPDI **no** importa anotaciones, por lo que las firmas electrónicas desaparecen automáticamente)
+2. **FPDF** superpone "Sin validez legal" repetido en diagonal a 45° (Times Italic 12pt, gris claro RGB 192, espaciado 10mm) → se guarda como PDF intermedio
+3. **Ghostscript** rasteriza cada página del PDF intermedio a PNG a 150 DPI (`PaginaAPng`)
+4. **FPDF** embebe las imágenes rasterizadas en un nuevo PDF (el watermark queda fundido en los píxeles)
 5. Archivos temporales se limpian automáticamente
-6. El resultado es un PDF rasterizado donde la marca de agua es parte de los píxeles, no una capa editable. La firma electrónica (incluyendo QR) ha sido eliminada antes de la rasterización.
+6. El resultado es un PDF rasterizado sin firmas electrónicas, donde la marca de agua es parte de los píxeles, no una capa editable
 
 ### Requisitos del servidor
 - Ghostscript (`gs`) en PATH o `/usr/bin/gs`
-- PHP GD con soporte para `imagecreatefrompng()`, `imagettftext()`, `imagecolorallocatealpha()`, `imagefilter()` con `IMG_FILTER_PIXELATE`
-- Fuente NimbusRoman-Italic.otf en `/usr/share/fonts/opentype/urw-base35/`
+- Fuente Times Italic (incluida en FPDF)
 - Función `exec()` habilitada
 
 ## Pruebas
